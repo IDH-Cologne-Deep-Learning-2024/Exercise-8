@@ -52,8 +52,30 @@ model.add(Embedding(vocab_size, 300, input_length=MAX_LENGTH))
 model.add(Flatten())
 model.add(Dense(100, activation="relu"))
 model.add(Dense(100, activation="relu"))
+model.add(Dense(100, activation="relu"))
+model.add(Dense(100, activation="relu"))
 model.add(Dense(number_classes, activation="softmax"))
-model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.01))
+# home pc
+# 300=>100=>100
+# 0.0070 => 0.38
+# 0.0080 => 0.41 <== Best
+# 0.0085 => 0.41 <== Best
+# 0.0090 => 0.41 <== Best
+# 0.0100 => 0.41 <== Best
+# 0.0110 => 0.40
+# 0.0200 => 0.38
+# 0.0300 => 0.36
+# 0.0500 => 0.36
+# 0.1000 => 0.29
+# 300=>100=>100=>100=>100
+# 0.0001 => 0.29
+# 0.0050 => 0.35
+# 0.0500 => 0.38
+# 0.0750 => 0.39 <== Best
+# 0.0800 => 0.37
+# 0.1000 => 0.36
+# 0.9000 => 0.11
+model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.08))
 model.summary()
 model.fit(tokenized_X_train, y_train, epochs=20, verbose=1)
 
