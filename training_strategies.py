@@ -3,12 +3,13 @@ import pandas as pd
 import numpy as np
 import os
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Embedding, Flatten, Input, Dense
+from tensorflow.keras.layers import Embedding, Flatten, Input, Dense, Dropout
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD, Adam
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+from tensorflow.keras.regularizers import L1 , L2 , L1L2
 
 
 def get_glove_embeddings(path, vocab_size, tokenizer):
@@ -50,12 +51,15 @@ model = Sequential()
 model.add(Input(shape=(MAX_LENGTH,)))
 model.add(Embedding(vocab_size, 300, input_length=MAX_LENGTH))
 model.add(Flatten())
-model.add(Dense(100, activation="relu"))
-model.add(Dense(100, activation="relu"))
+model.add(Dense(120, activation="tanh"))
+model.add(Dropout(0.6))
+model.add(Dense(60, activation="tanh",kernel_regularizer=L1L2(l1=1e-5, l2=1e-4), bias_regularizer=L2(1e-4),
+activity_regularizer=L2(1e-5)))
+model.add(Dropout(0.3))
 model.add(Dense(number_classes, activation="softmax"))
-model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.01))
+model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.08))
 model.summary()
-model.fit(tokenized_X_train, y_train, epochs=20, verbose=1)
+model.fit(tokenized_X_train, y_train, batch_size=16, epochs=20, verbose=1)
 
 y_pred = model.predict(tokenized_X_test)
 y_pred = y_pred.argmax(axis=1)
