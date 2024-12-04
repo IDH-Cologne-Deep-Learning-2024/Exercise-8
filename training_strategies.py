@@ -9,7 +9,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-
+from tensorflow.keras.layers import Dropout, Bidirectional, LSTM
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.optimizers import Adam
 
 def get_glove_embeddings(path, vocab_size, tokenizer):
     embedding_vector = {}
@@ -50,10 +52,14 @@ model = Sequential()
 model.add(Input(shape=(MAX_LENGTH,)))
 model.add(Embedding(vocab_size, 300, input_length=MAX_LENGTH))
 model.add(Flatten())
-model.add(Dense(100, activation="relu"))
-model.add(Dense(100, activation="relu"))
+#model.add(Bidirectional(LSTM(128, return_sequences=True)))
+#model.add(Dropout(0.1))
+#model.add(LSTM(64))
+model.add(Dense(100, activation="relu", kernel_regularizer=l2(0.0001)))
+model.add(Dropout(0.2))
+model.add(Dense(100, activation="relu", kernel_regularizer=l2(0.0001)))
 model.add(Dense(number_classes, activation="softmax"))
-model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.01))
+model.compile(loss="crossentropy", optimizer=Adam(learning_rate=0.0005))
 model.summary()
 model.fit(tokenized_X_train, y_train, epochs=20, verbose=1)
 
