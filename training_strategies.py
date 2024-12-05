@@ -59,7 +59,7 @@ model.add(Dropout(0.3))
 model.add(Dense(number_classes, activation="softmax"))
 model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.09))
 model.summary()
-history = model.fit(tokenized_X_train, y_train, batch_size=16, epochs=20, validation_split=0.1, verbose=1)
+model.fit(tokenized_X_train, y_train, batch_size=16, epochs=20, validation_split=0.1, verbose=1)
 
 y_pred = model.predict(tokenized_X_test)
 y_pred = y_pred.argmax(axis=1)
