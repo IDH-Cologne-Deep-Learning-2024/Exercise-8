@@ -6,9 +6,16 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Embedding, Flatten, Input, Dense
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD, Adam
+from tensorflow.keras.layers import Dropout
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+
+# optimizer adam learning rate 0.01, batch size 32, dropout 20%-- overfitted
+# df head first 4000, dropout 50%, class weight balanced
+# df.sample frac 30 random 42, dropout 25%, dense 120 + 150, dropout 30
+# hm
+
 
 
 def get_glove_embeddings(path, vocab_size, tokenizer):
@@ -27,8 +34,11 @@ def get_glove_embeddings(path, vocab_size, tokenizer):
             embedding_matrix[i] = embedding_value
     return [embedding_matrix]
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
 
 df = pd.read_csv("data.tsv", sep="\t")
+#df = df.sample(frac=0.1, random_state=42)
 df = df.head(3000)
 X = df.Abstract
 y = df.DomainID
@@ -50,13 +60,23 @@ model = Sequential()
 model.add(Input(shape=(MAX_LENGTH,)))
 model.add(Embedding(vocab_size, 300, input_length=MAX_LENGTH))
 model.add(Flatten())
+model.add(Dense(120, activation="relu"))
 model.add(Dense(100, activation="relu"))
 model.add(Dense(100, activation="relu"))
+model.add(Dense(90, activation="relu"))
 model.add(Dense(number_classes, activation="softmax"))
-model.compile(loss="crossentropy", optimizer=SGD(learning_rate=0.01))
+model.add(Dropout(0.5))
+model.compile(loss="crossentropy", optimizer=Adam(learning_rate=0.03))
 model.summary()
-model.fit(tokenized_X_train, y_train, epochs=20, verbose=1)
+history = model.fit(tokenized_X_train, y_train, epochs=20, batch_size=32, verbose=1)
 
 y_pred = model.predict(tokenized_X_test)
 y_pred = y_pred.argmax(axis=1)
 print(classification_report(y_test, y_pred))
+
+plt.plot(history.history['loss'], label='Training Loss')
+plt.title('Model Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
